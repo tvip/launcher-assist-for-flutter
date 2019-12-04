@@ -14,28 +14,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   var numberOfInstalledApps;
-  var installedApps;
+  List<AppInfo> installedApps;
   var wallpaper;
-
-  @override
-  initState() {
-    super.initState();
-
-    // Get all apps
-    LauncherAssist.getAllApps().then((apps) {
-      setState(() {
-        numberOfInstalledApps = apps.length;
-        installedApps = apps;
-      });
-    });
-
-    // Get wallpaper as binary data
-    LauncherAssist.getWallpaper().then((imageData) {
-      setState(() {
-        wallpaper = imageData;
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,18 +24,22 @@ class _MyAppState extends State<MyApp> {
           appBar: new AppBar(
             title: new Text('Launcher Assist'),
           ),
-          body: new Column(children: <Widget>[
-            new Text("Found $numberOfInstalledApps apps installed"),
-            new RaisedButton(
-                child: new Text("Launch Something"),
-                onPressed: () {
-                  // Launch the first app available
-                  LauncherAssist.launchApp(installedApps[0]["package"]);
-                }),
-            wallpaper != null
-                ? new Image.memory(wallpaper, fit: BoxFit.scaleDown)
-                : new Center()
-          ])),
+
+          body: FutureBuilder<List<AppInfo>>(
+            future: LauncherAssist.getAllApps(),
+            builder: (context, state) {
+              if (!state.hasData) {
+                return Center(child: Text('Loaging'),);
+              }
+              return ListView.builder(
+              itemCount: state.data.length,
+              itemBuilder: (context, index) => Card(child: Column(children: <Widget>[
+                Text(state.data[index].label),
+                if(state.data[index].banner != null) Image.memory(state.data[index].banner),
+                if(state.data[index].icon != null) Image.memory(state.data[index].icon),
+              ],),));
+            },
+          ))
     );
   }
 }

@@ -99,14 +99,25 @@ public class LauncherAssistPlugin implements MethodCallHandler {
               ApplicationInfo app = manager.getApplicationInfo(
                       resInfo.activityInfo.packageName, PackageManager.GET_META_DATA);
               if (manager.getLaunchIntentForPackage(app.packageName) != null) {
-
-                  byte[] iconData = convertToBytes(getBitmapFromDrawable(app.loadIcon(manager)),
-                          Bitmap.CompressFormat.PNG, 100);
-
                   Map<String, Object> current = new HashMap<>();
-                  current.put("label", app.loadLabel(manager).toString());
-                  current.put("icon", iconData);
+                  String label = app.loadLabel(manager).toString();
+                  current.put("label", label);
                   current.put("package", app.packageName);
+
+                  Drawable loadIcon = app.loadIcon(manager);
+                  if (loadIcon != null) {
+                      byte[] iconData = convertToBytes(getBitmapFromDrawable(loadIcon),
+                              Bitmap.CompressFormat.PNG, 100);
+                      current.put("icon", iconData);
+                  }
+                  Drawable drawable = app.loadBanner(manager);
+
+                  if (drawable != null) {
+                      byte[] bannerData = convertToBytes(getBitmapFromDrawable(drawable),
+                              Bitmap.CompressFormat.PNG, 100);
+                      current.put("banner", bannerData);
+                  }
+
                   _output.add(current);
               }
           } catch(Exception e) {
